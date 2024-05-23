@@ -1,16 +1,14 @@
-#include <ctype.h>
-#include <netdb.h>
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 const char MESSAGE[] = "Hello UPO student!\n";
 
 int main(int argc, char *argv[]) {
-	int simpleSocket = 0, simplePort = 0, returnStatus = 0;
+	int simpleSocket, simplePort, returnStatus;
 	struct sockaddr_in simpleServer;
 
 	if(2 != argc) {
@@ -27,17 +25,13 @@ int main(int argc, char *argv[]) {
 	else
 		fprintf(stderr, "\nSocket created!\n");
 
-	/* retrieve the port number for listening */
 	simplePort = atoi(argv[1]);
 
-	/* setup the address structure */
-	/* use INADDR_ANY to bind to all local addresses */
 	memset(&simpleServer, '\0', sizeof(simpleServer)); 
 	simpleServer.sin_family = AF_INET;
 	simpleServer.sin_addr.s_addr = htonl(INADDR_ANY);
 	simpleServer.sin_port = htons(simplePort);
 
-	/* bind to the address and port with our socket */
 	returnStatus = bind(simpleSocket, (struct sockaddr *)&simpleServer, sizeof(simpleServer));
 
 	if(returnStatus == 0)
@@ -48,7 +42,6 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	/* lets listen on the socket for connections */
 	returnStatus = listen(simpleSocket, 5);
 
 	if(returnStatus == -1) {
@@ -56,16 +49,12 @@ int main(int argc, char *argv[]) {
 		close(simpleSocket);
 		exit(1);
 	}
-	
-	char buffer[256] = "";
 
+	char buffer[256];
+	struct sockaddr_in clientName = { 0 };
+	int simpleChildSocket;
+	unsigned int clientNameLength = sizeof(clientName);
 	while(1) {
-		struct sockaddr_in clientName = { 0 };
-		int simpleChildSocket = 0;
-		unsigned int clientNameLength = sizeof(clientName);
-
-		/* wait here */
-
 		simpleChildSocket = accept(simpleSocket, (struct sockaddr *)&clientName, &clientNameLength);
 
 		if(simpleChildSocket == -1) {
@@ -74,37 +63,16 @@ int main(int argc, char *argv[]) {
 			exit(1);
 		}
 
-		/* handle the new connection request */
-		/* write out MESSAGE to the client */
-		/* receive a number from the client */
-		/* read and write back the messages the messages */
-		/* close the connection (exercise III: echo server - b) */
-		
+		/* read and write back the messages received from a client (exercise III: echo server - a) */
 		returnStatus = write(simpleChildSocket, MESSAGE, strlen(MESSAGE));
-		returnStatus = read(simpleChildSocket, buffer, sizeof(buffer));
 
-		if(returnStatus > 0) {
-			for(int b_char = 0; buffer[b_char] != '\0'; b_char++)
-				if(!isdigit(buffer[b_char]) && buffer[b_char] != '\n') {
-					returnStatus = 0;
-					break;
-				}
-
-			if(returnStatus != 0) {
-				int repeat = atoi(buffer);
-				while(repeat > 0) {
-					memset(&buffer, '\0', sizeof(buffer));
-					returnStatus = read(simpleChildSocket, buffer, sizeof(buffer));
-					if(returnStatus > 0) {
-						write(simpleChildSocket, buffer, strlen(buffer));
-						repeat--;
-					}
-					else
-						break;
-				}
-			}
+		while(returnStatus > 0) {
+			memset(&buffer, '\0', sizeof(buffer));
+			returnStatus = read(simpleChildSocket, buffer, sizeof(buffer));
+		 	if(returnStatus > 0)
+				write(simpleChildSocket, buffer, strlen(buffer));
 		}
-		
+
 		close(simpleChildSocket);
 	}
 

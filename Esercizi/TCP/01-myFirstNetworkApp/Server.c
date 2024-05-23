@@ -1,15 +1,14 @@
-#include <netdb.h>
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 const char MESSAGE[] = "Hello UPO student!\n";
 
 int main(int argc, char *argv[]) {
-	int simpleSocket = 0, simplePort = 0, returnStatus = 0;
+	int simpleSocket, simplePort, returnStatus;
 	struct sockaddr_in simpleServer;
 
 	if(2 != argc) {
@@ -56,13 +55,11 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+	struct sockaddr_in clientName = { 0 };
+	int simpleChildSocket;
+	unsigned int clientNameLength = sizeof(clientName);
 	while(1) {
-		struct sockaddr_in clientName = { 0 };
-		int simpleChildSocket = 0;
-		unsigned int clientNameLength = sizeof(clientName);
-
 		/* wait here */
-
 		simpleChildSocket = accept(simpleSocket, (struct sockaddr *)&clientName, &clientNameLength);
 
 		if(simpleChildSocket == -1) {

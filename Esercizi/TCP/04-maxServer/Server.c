@@ -1,16 +1,15 @@
+#include <arpa/inet.h>
 #include <ctype.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 const char MESSAGE[] = "Hello UPO student!\n";
 
 int main(int argc, char *argv[]) {
-	int simpleSocket = 0, simplePort = 0, returnStatus = 0;
+	int simpleSocket, simplePort, returnStatus;
 	struct sockaddr_in simpleServer;
 
 	if(2 != argc) {
@@ -27,17 +26,13 @@ int main(int argc, char *argv[]) {
 	else
 		fprintf(stderr, "\nSocket created!\n");
 
-	/* retrieve the port number for listening */
 	simplePort = atoi(argv[1]);
 
-	/* setup the address structure */
-	/* use INADDR_ANY to bind to all local addresses */
 	memset(&simpleServer, '\0', sizeof(simpleServer)); 
 	simpleServer.sin_family = AF_INET;
 	simpleServer.sin_addr.s_addr = htonl(INADDR_ANY);
 	simpleServer.sin_port = htons(simplePort);
 
-	/* bind to the address and port with our socket */
 	returnStatus = bind(simpleSocket, (struct sockaddr *)&simpleServer, sizeof(simpleServer));
 
 	if(returnStatus == 0)
@@ -48,7 +43,6 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	/* lets listen on the socket for connections */
 	returnStatus = listen(simpleSocket, 5);
 
 	if(returnStatus == -1) {
@@ -57,16 +51,11 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	int clientNumber, firstNumber;
-	char buffer[256] = "";
-
+	int simpleChildSocket, clientNumber, firstNumber;
+	char buffer[256];
+	struct sockaddr_in clientName = { 0 };
+	unsigned int clientNameLength = sizeof(clientName);
 	while(1) {
-		struct sockaddr_in clientName = { 0 };
-		int simpleChildSocket = 0;
-		unsigned int clientNameLength = sizeof(clientName);
-
-		/* wait here */
-
 		simpleChildSocket = accept(simpleSocket, (struct sockaddr *)&clientName, &clientNameLength);
 
 		if(simpleChildSocket == -1) {
@@ -75,11 +64,9 @@ int main(int argc, char *argv[]) {
 			exit(1);
 		}
 
-		/* handle the new connection request */
 		/* write out MESSAGE to the client */
 		/* receive a number from the client */
 		/* write back the max number received (exercise IV: max server) */
-
 		write(simpleChildSocket, MESSAGE, strlen(MESSAGE));
 		firstNumber = 1;
 

@@ -1,15 +1,13 @@
 #include <arpa/inet.h>
 #include <ctype.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
-	int simpleSocket = 0, simplePort = 0, returnStatus = 0;
+	int simpleSocket, simplePort, returnStatus;
 	struct sockaddr_in simpleServer;
 
 	if(3 != argc) {
@@ -17,7 +15,6 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	/* create a streaming socket */
 	simpleSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	if(simpleSocket == -1) {
@@ -27,19 +24,13 @@ int main(int argc, char *argv[]) {
 	else
 		fprintf(stderr, "\nSocket created!\n");
 
-	/* retrieve the port number for connecting */
 	simplePort = atoi(argv[2]);
 
-	/* setup the address structure */
-	/* use the IP address sent as an argument for the server address */
-	// bzero(&simpleServer, sizeof(simpleServer)); 
 	memset(&simpleServer, '\0', sizeof(simpleServer));
 	simpleServer.sin_family = AF_INET;
-	// inet_addr(argv[2], &simpleServer.sin_addr.s_addr);
 	simpleServer.sin_addr.s_addr = inet_addr(argv[1]);
 	simpleServer.sin_port = htons(simplePort);
 
-	/* connect to the address and port with our socket */
 	returnStatus = connect(simpleSocket, (struct sockaddr *)&simpleServer, sizeof(simpleServer));
 
 	if (returnStatus == 0)
@@ -50,8 +41,7 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	/* send a number, send-receive the messages, send bye and receive ack (exercise III: echo server - c) */
-	
+	/* send the message and receive it back from the server n times (exercise III: echo server - a) */
 	char buffer[256] = "";
 	returnStatus = read(simpleSocket, buffer, sizeof(buffer));
 
@@ -72,12 +62,10 @@ int main(int argc, char *argv[]) {
 
 			if(returnStatus == 0)
 				fprintf(stdout, "Invalid input.\n\nType an integer number of messages: ");
-			else
-				write(simpleSocket, buffer, sizeof(buffer));
 		} while(returnStatus == 0);
-
+		
 		varInt = atoi(buffer);
-
+		
 		while(varInt > 0) {
 			fprintf(stdout, "\nType here your message: ");
 			fgets(buffer, sizeof(buffer), stdin);
@@ -95,13 +83,6 @@ int main(int argc, char *argv[]) {
 				break;
 			}
 		}
-
-		write(simpleSocket, "bye", strlen("bye"));
-		memset(&buffer, '\0', sizeof(buffer));
-		returnStatus = read(simpleSocket, buffer, sizeof(buffer));
-		
-		if(returnStatus > 0 && strcmp(buffer, "ack") == 0)
-			fprintf(stdout, "\nAck received. Connection with server closed\n");
 	}
 	else
 		fprintf(stderr, "Failed connection! (RS: %d)\n", returnStatus);

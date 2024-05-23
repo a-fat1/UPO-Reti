@@ -1,15 +1,12 @@
 #include <arpa/inet.h>
-#include <ctype.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
-	int simpleSocket = 0, simplePort = 0, returnStatus = 0;
+	int simpleSocket, simplePort, returnStatus;
 	struct sockaddr_in simpleServer;
 
 	if(3 != argc) {
@@ -32,7 +29,7 @@ int main(int argc, char *argv[]) {
 
 	/* setup the address structure */
 	/* use the IP address sent as an argument for the server address */
-	// bzero(&simpleServer, sizeof(simpleServer)); 
+	// bzero(&simpleServer, sizeof(simpleServer));
 	memset(&simpleServer, '\0', sizeof(simpleServer));
 	simpleServer.sin_family = AF_INET;
 	// inet_addr(argv[2], &simpleServer.sin_addr.s_addr);
@@ -50,41 +47,14 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	/* type a number, send a number, receive back the max number sent (exercise IV: max server) */
-	
+	/* get the message from the server */
 	char buffer[256] = "";
 	returnStatus = read(simpleSocket, buffer, sizeof(buffer));
-	fprintf(stdout, "%s", buffer);
 
-	do {
-		fprintf(stdout, "\nType an integer number\nor type bye to end the programm: ");
-		fgets(buffer, sizeof(buffer), stdin);
-
-		returnStatus = 1;
-		if(strcmp(buffer, "bye\n") != 0) {
-			for(int bChar = 0; buffer[bChar] != '\0'; bChar++)
-				if(!isdigit(buffer[bChar]) && buffer[bChar] != '\n') {
-					returnStatus = 0;
-					break;
-				}
-		}
-
-		if(returnStatus == 0) {
-			fprintf(stdout, "Invalid input.\n");
-			returnStatus = 1;
-		}
-		else {
-			write(simpleSocket, buffer, sizeof(buffer));
-			memset(buffer, '\0', sizeof(buffer));
-			returnStatus = read(simpleSocket, buffer, sizeof(buffer));
-			if(strcmp(buffer, "ack") == 0 || returnStatus == 0) {
-				fprintf(stdout, "Ack received. Goodbye.\n");
-				returnStatus = 0;
-			}
-			else
-				fprintf(stdout, "%s\n", buffer);
-		}
-	} while(returnStatus != 0);
+	if(returnStatus > 0)
+		printf("%d: %s", returnStatus, buffer);
+	else
+		fprintf(stderr, "Return Status = %d\n", returnStatus);
 
 	close(simpleSocket);
 	return 0;
