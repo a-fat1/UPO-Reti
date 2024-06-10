@@ -20,11 +20,10 @@ int main(int argc, char *argv[]) {
 	simpleSocket = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if(simpleSocket == -1) {
-		fprintf(stderr, "Could not create a socket!\n");
+		fprintf(stderr, "\nCould not create a socket!\n");
 		exit(1);
-	}
-	else
-		fprintf(stderr, "\nSocket created!\n");
+	} else
+		fprintf(stdout, "\nSocket created!\n");
 
 	/* retrieve the port number for connecting */
 	simplePort = atoi(argv[2]);
@@ -42,7 +41,7 @@ int main(int argc, char *argv[]) {
 	returnStatus = sendto(simpleSocket, MESSAGE, sizeof(MESSAGE), 0, (struct sockaddr *)&simpleServer, sizeof(simpleServer));
 
 	if(returnStatus < 0)
-		fprintf(stderr, "Return Status = %d \n", returnStatus);
+		fprintf(stderr, "Return Status = %d\n", returnStatus);
 
 	close(simpleSocket);
 	return 0;

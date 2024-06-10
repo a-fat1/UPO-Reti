@@ -17,11 +17,9 @@ int main(int argc, char *argv[]) {
 	simpleSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	if(simpleSocket == -1) {
-		fprintf(stderr, "\nCould not create a socket!\n");
+		fprintf(stderr, "\nError: could not create a socket.\n");
 		exit(1);
 	}
-	else
-		fprintf(stderr, "\nSocket created!\n");
 
 	simplePort = atoi(argv[2]);
 
@@ -32,10 +30,10 @@ int main(int argc, char *argv[]) {
 
 	returnStatus = connect(simpleSocket, (struct sockaddr *)&simpleServer, sizeof(simpleServer));
 
-	if (returnStatus == 0)
-		fprintf(stderr, "Connect successful!\n\n");
+	if(returnStatus == 0)
+		fprintf(stdout, "\nPrint message, a simple program that receives\nand displays a message from the server.\n\n");
 	else {
-		fprintf(stderr, "Could not connect to address!\n");
+		fprintf(stderr, "\nError: could not connect to address.\n");
 		close(simpleSocket);
 		exit(1);
 	}
@@ -43,10 +41,12 @@ int main(int argc, char *argv[]) {
 	char buffer[256] = "";
 	returnStatus = read(simpleSocket, buffer, sizeof(buffer));
 
+	/* Il client riceve e stampa a terminale la data e l'ora ricevuta dal server (esercizio II: dynamic answer). */
+
 	if(returnStatus > 0)
-		printf("(RS-%d): %s", returnStatus, buffer);
+		fprintf(stdout, "(%d): %s", returnStatus, buffer);
 	else
-		fprintf(stderr, "Return Status = %d\n", returnStatus);
+		fprintf(stderr, "Error: connection failed. (%d)\n", returnStatus);
 
 	close(simpleSocket);
 	return 0;

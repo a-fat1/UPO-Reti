@@ -21,27 +21,31 @@ int main(int argc, char *argv[]) {
 	if(simpleSocket == -1) {
 		fprintf(stderr, "\nCould not create a socket!\n");
 		exit(1);
-	}
-	else
-		fprintf(stderr, "\nSocket created!\n");
+	} else
+		fprintf(stdout, "\nSocket created!\n");
 
+	/* retrieve the port number for listening */
 	simplePort = atoi(argv[1]);
 
+	/* setup the address structure */
+	/* use INADDR_ANY to bind to all local addresses */
 	memset(&simpleServer, '\0', sizeof(simpleServer)); 
 	simpleServer.sin_family = AF_INET;
 	simpleServer.sin_addr.s_addr = htonl(INADDR_ANY);
 	simpleServer.sin_port = htons(simplePort);
 
+	/* bind to the address and port with our socket */
 	returnStatus = bind(simpleSocket, (struct sockaddr *)&simpleServer, sizeof(simpleServer));
 
 	if(returnStatus == 0)
-		fprintf(stderr, "Bind completed!\n");
+		fprintf(stdout, "Bind completed!\n");
 	else {
 		fprintf(stderr, "Could not bind to address!\n");
 		close(simpleSocket);
 		exit(1);
 	}
 
+	/* lets listen on the socket for connections */
 	returnStatus = listen(simpleSocket, 5);
 
 	if(returnStatus == -1) {
@@ -50,11 +54,11 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	char buffer[256];
 	struct sockaddr_in clientName = { 0 };
 	int simpleChildSocket;
 	unsigned int clientNameLength = sizeof(clientName);
 	while(1) {
+		/* wait here */
 		simpleChildSocket = accept(simpleSocket, (struct sockaddr *)&clientName, &clientNameLength);
 
 		if(simpleChildSocket == -1) {
@@ -63,16 +67,9 @@ int main(int argc, char *argv[]) {
 			exit(1);
 		}
 
-		/* read and write back the messages received from a client (exercise III: echo server - a) */
-		returnStatus = write(simpleChildSocket, MESSAGE, strlen(MESSAGE));
-
-		while(returnStatus > 0) {
-			memset(&buffer, '\0', sizeof(buffer));
-			returnStatus = read(simpleChildSocket, buffer, sizeof(buffer));
-		 	if(returnStatus > 0)
-				write(simpleChildSocket, buffer, strlen(buffer));
-		}
-
+		/* handle the new connection request */
+		/* write out our message to the client */
+		write(simpleChildSocket, MESSAGE, strlen(MESSAGE));
 		close(simpleChildSocket);
 	}
 

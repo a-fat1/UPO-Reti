@@ -20,9 +20,8 @@ int main(int argc, char *argv[]) {
 	if(simpleSocket == -1) {
 		fprintf(stderr, "\nCould not create a socket!\n");
 		exit(1);
-	}
-	else
-		fprintf(stderr, "\nSocket created!\n");
+	} else
+		fprintf(stdout, "\nSocket created!\n");
 
 	/* retrieve the port number for connecting */
 	simplePort = atoi(argv[2]);
@@ -39,8 +38,8 @@ int main(int argc, char *argv[]) {
 	/* connect to the address and port with our socket */
 	returnStatus = connect(simpleSocket, (struct sockaddr *)&simpleServer, sizeof(simpleServer));
 
-	if (returnStatus == 0)
-		fprintf(stderr, "Connect successful!\n\n");
+	if(returnStatus == 0)
+		fprintf(stdout, "Connect successful!\n\n");
 	else {
 		fprintf(stderr, "Could not connect to address!\n");
 		close(simpleSocket);
@@ -52,7 +51,7 @@ int main(int argc, char *argv[]) {
 	returnStatus = read(simpleSocket, buffer, sizeof(buffer));
 
 	if(returnStatus > 0)
-		printf("%d: %s", returnStatus, buffer);
+		fprintf(stdout, "%d: %s", returnStatus, buffer);
 	else
 		fprintf(stderr, "Return Status = %d\n", returnStatus);
 

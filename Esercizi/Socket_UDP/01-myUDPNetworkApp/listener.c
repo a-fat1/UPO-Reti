@@ -1,29 +1,27 @@
 #include <arpa/inet.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-const char MESSAGE[] = "Hello UPO student!\n";
-
 int main(int argc, char *argv[]) {
 	int simpleSocket, simplePort, returnStatus;
 	struct sockaddr_in simpleServer;
 
 	if(2 != argc) {
-		fprintf(stderr, "\nUsage: %s <port>\n", argv[0]);
+		fprintf(stderr, "Usage: %s <port>\n", argv[0]);
 		exit(1);
 	}
 
-	simpleSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	simpleSocket = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if(simpleSocket == -1) {
-		fprintf(stderr, "\nCould not create a socket!\n");
+		fprintf(stderr, "Could not create a socket!\n");
 		exit(1);
-	}
-	else
-		fprintf(stderr, "\nSocket created!\n");
+	} else
+		fprintf(stdout, "\nSocket created!\n");
 
 	/* retrieve the port number for listening */
 	simplePort = atoi(argv[1]);
@@ -39,39 +37,33 @@ int main(int argc, char *argv[]) {
 	returnStatus = bind(simpleSocket, (struct sockaddr *)&simpleServer, sizeof(simpleServer));
 
 	if(returnStatus == 0)
-		fprintf(stderr, "Bind completed!\n");
+		fprintf(stdout, "Bind completed!\n");
 	else {
 		fprintf(stderr, "Could not bind to address!\n");
 		close(simpleSocket);
 		exit(1);
 	}
-
-	/* lets listen on the socket for connections */
-	returnStatus = listen(simpleSocket, 5);
-
-	if(returnStatus == -1) {
-		fprintf(stderr, "Cannot listen on socket!\n");
-		close(simpleSocket);
-		exit(1);
-	}
-
+	
+	char buffer[256], whoareyou[32], *pin;
 	struct sockaddr_in clientName = { 0 };
-	int simpleChildSocket;
 	unsigned int clientNameLength = sizeof(clientName);
 	while(1) {
-		/* wait here */
-		simpleChildSocket = accept(simpleSocket, (struct sockaddr *)&clientName, &clientNameLength);
-
-		if(simpleChildSocket == -1) {
-			fprintf(stderr, "Cannot accept connections!\n");
-			close(simpleSocket);
-			exit(1);
-		}
-
 		/* handle the new connection request */
-		/* write out our message to the client */
-		write(simpleChildSocket, MESSAGE, strlen(MESSAGE));
-		close(simpleChildSocket);
+		memset(buffer, '\0', sizeof(buffer));
+		
+		/* wait here */
+		returnStatus = recvfrom(simpleSocket, buffer, sizeof(buffer) - 1, 0, (struct sockaddr *)&clientName, &clientNameLength);
+		
+		if (returnStatus > 0) {
+			/* if the string is terminated by \n, remove it */
+			pin = strrchr(buffer, '\n');
+			if(pin != NULL) *pin = '\0';
+
+			/* print the IP address we are receiving the message from */
+			inet_ntop(AF_INET, &(clientName.sin_addr.s_addr), whoareyou, sizeof(whoareyou));
+			fprintf(stdout, "%s from %s\n", buffer, whoareyou);
+		} else
+			fprintf(stderr, "Return Status = %d Error %d (%s)\n", returnStatus, errno, strerror(errno));
 	}
 
 	close(simpleSocket);
