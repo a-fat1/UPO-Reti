@@ -39,6 +39,8 @@ int main(int argc, char *argv[]) {
 		close(simpleSocket);
 		exit(1);
 	}
+
+	/* Il server legge e restituisce i messaggi ricevuti da un client (esercizio I: echo server - UDP). */
 	
 	char buffer[256], whoareyou[32], *pin;
 	struct sockaddr_in clientName = { 0 };
@@ -49,11 +51,12 @@ int main(int argc, char *argv[]) {
 
 		if(returnStatus > 0) {
 			pin = strrchr(buffer, '\n');
-			if(pin != NULL) *pin = '\0';
+			if(pin != NULL) *pin = '\0';	// Se è presente il carattere di newline esso viene sostituito con il terminatore di stringa '\0'.
 
-			inet_ntop(AF_INET, &(clientName.sin_addr.s_addr), whoareyou, sizeof(whoareyou));
+			inet_ntop(AF_INET, &(clientName.sin_addr.s_addr), whoareyou, sizeof(whoareyou));	// Converte l'indirizzo IP numerico in una stringa.
 			fprintf(stdout, "\nReceived '%s' from %s\n", buffer, whoareyou);
 
+			// Restituisce il messaggio ricevuto dal client.
 			returnStatus = sendto(simpleSocket, buffer, strlen(buffer), 0, (struct sockaddr *)&clientName, clientNameLength);
 
 			if(returnStatus > 0)

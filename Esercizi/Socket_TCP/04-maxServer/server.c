@@ -77,22 +77,22 @@ int main(int argc, char *argv[]) {
 		do {
 			memset(buffer, '\0', sizeof(buffer));
 			fprintf(stdout, "\nWaiting for client number...\n");
-			returnStatus = read(simpleChildSocket, buffer, sizeof(buffer));
+			returnStatus = read(simpleChildSocket, buffer, sizeof(buffer));		// Il server riceve un numero dal client
 
 			if(returnStatus > 0) {
-				if(buffer[strlen(buffer)] != '\0') {
+				if(buffer[strlen(buffer)] != '\0') {		// Il server controlla se il numero contenuto nella stringa abbia il terminatore '\0'.
 					write(simpleChildSocket, "Error: invalid number.", strlen("Error: invalid number."));
 					fprintf(stderr, "\nError: invalid number.\nSent error number.\n\n");
 					returnStatus = 0;
 				} else {
 					fprintf(stdout, "\nString from client: %s\n", buffer);
-					if(strcmp(buffer, "bye") != 0) {
+					if(strcmp(buffer, "bye") != 0) {	// Il server controlla se il messaggio ricevuto sia "bye" per decidere se deve chiudere la connessione o meno.
 						if(buffer[0] == '-' && strlen(buffer) > 1)
 							returnStatus = 1;
 						else
 							returnStatus = 0;
 
-						while(buffer[returnStatus] != '\0') {
+						while(buffer[returnStatus] != '\0') {	// Il server controlla se il numero contenuto nella stringa sia un intero.
 							if(!isdigit(buffer[returnStatus])) {
 								returnStatus = 0;
 								break;
@@ -104,32 +104,32 @@ int main(int argc, char *argv[]) {
 							errno = 0;
 							returnStatus = strtol(buffer, NULL, 10);
 							if(errno == ERANGE) {
-								if(returnStatus == LONG_MAX) {
+								if(returnStatus == LONG_MAX) {	// Il server controlla se il numero contenuto nella stringa non generi overflow.
 									snprintf(buffer, sizeof(buffer), "Error: integer overflow.\n");
 									fprintf(stderr, "Error: integer overflow.\n");
-								} else if (returnStatus == LONG_MIN) {
+								} else if (returnStatus == LONG_MIN) {	// Si controlla anche che il numero non generi underflow.
 									snprintf(buffer, sizeof(buffer), "Error: integer underflow.\n");
 									fprintf(stderr, "Error: integer underflow.\n");
 								}
 							} else {
-								if(!firstNumber) {
-									if(returnStatus > clientNumber)
+								if(!firstNumber) {		// Il server controlla se il client sta inviando il primo numero.
+									if(returnStatus > clientNumber)		// Se non è il primo numero che il server riceve dal client si esegue il confronto.
 										clientNumber = returnStatus;
 								} else {
-									clientNumber = returnStatus;
+									clientNumber = returnStatus;	// Altrimenti lo si salva direttamente. 
 									firstNumber = 0;
 								}
 								snprintf(buffer, sizeof(buffer), "Max number saved: %ld", clientNumber);
 								fprintf(stdout, "Number saved: %ld\n", clientNumber);
 							}
 							
-							write(simpleChildSocket, buffer, strlen(buffer));
+							write(simpleChildSocket, buffer, strlen(buffer));	// Il server invia al client quello che ha memorizzato.
 							returnStatus = 1;
 						} else {
 							write(simpleChildSocket, "Error: invalid input.", strlen("Error: invalid input."));
 							fprintf(stderr, "Error: invalid input.\n");
 						}
-					} else {	// In caso del messaggio "bye" il server invia "ack" al client
+					} else {	// In caso del messaggio "bye" il server invia "ack" al client e chiude la connessione.
 						fprintf(stdout, "\nReceived 'bye'.\n");
 						write(simpleChildSocket, "ack", strlen("ack"));
 						fprintf(stdout, "Sent 'ack'.\n");

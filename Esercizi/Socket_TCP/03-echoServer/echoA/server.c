@@ -70,11 +70,11 @@ int main(int argc, char *argv[]) {
 		fprintf(stdout, "\nSent welcome message.\n");
 
 		while(1) {
-			memset(&buffer, '\0', sizeof(buffer));
+			memset(&buffer, '\0', sizeof(buffer));		// Il server deve essere sempre pronto a ricevere i messaggi, quindi il buffer viene ripulito.
 			fprintf(stdout, "\nWaiting for client message...\n");
 			returnStatus = read(simpleChildSocket, buffer, sizeof(buffer));
 		 	if(returnStatus > 0) {
-				if(buffer[strlen(buffer)] != '\0' || strlen(buffer) == 0) {
+				if(buffer[strlen(buffer)] != '\0' || strlen(buffer) == 0) {		// Controllo lunghezza e presenza del terminatore '\0' nella stringa ricevuta.
 					write(simpleChildSocket, "Error: invalid message.", strlen("Error: invalid message."));
 					fprintf(stderr, "\nError: invalid message.\nSent error message.\n\n");
 				} else {
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
 					write(simpleChildSocket, buffer, strlen(buffer));
 					fprintf(stdout, "Sent string '%s'.\n", buffer);
 				}
-			} else {
+			} else {	// Il controllo fallisce quando la connessione si interrompe, oppure quando il client decide di terminare la connessione.
 				fprintf(stderr, "\nError: connection failed. (%d)\n", returnStatus);
 				break;
 			}

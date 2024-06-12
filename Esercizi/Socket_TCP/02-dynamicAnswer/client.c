@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
 	/* Il client riceve e stampa a terminale la data e l'ora ricevuta dal server (esercizio II: dynamic answer). */
 
 	if(returnStatus > 0)
+		// Effettuo controllo per verificare la presenza del terminatore '\0' nella stringa ricevuta.
 		fprintf(stdout, "(%d): %s", returnStatus, buffer);
 	else
 		fprintf(stderr, "Error: connection failed. (%d)\n", returnStatus);

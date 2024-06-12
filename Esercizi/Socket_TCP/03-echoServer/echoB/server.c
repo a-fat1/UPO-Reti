@@ -75,15 +75,15 @@ int main(int argc, char *argv[]) {
 		returnStatus = write(simpleChildSocket, MESSAGE, strlen(MESSAGE));
 
 		fprintf(stdout, "\nWaiting for number...\n");
-		returnStatus = read(simpleChildSocket, buffer, sizeof(buffer));
+		returnStatus = read(simpleChildSocket, buffer, sizeof(buffer));		// Il server riceve un numero dal client.
 
 		if(returnStatus > 0) {
-			if(buffer[strlen(buffer)] != '\0') {
+			if(buffer[strlen(buffer)] != '\0') {	// Il server controlla se il numero contenuto nella stringa abbia il terminatore '\0'.
 				write(simpleChildSocket, "Error: invalid number.", strlen("Error: invalid number."));
 				fprintf(stderr, "\nError: invalid number.\nSent error number.\n\n");
 			} else {
 				returnStatus = 0;
-				while(buffer[returnStatus] != '\0') {
+				while(buffer[returnStatus] != '\0') {	// Il server controlla se il numero contenuto nella stringa sia un intero.
 					if(!isdigit(buffer[returnStatus])) {
 						returnStatus = 0;
 						break;
@@ -94,26 +94,26 @@ int main(int argc, char *argv[]) {
 				if(returnStatus != 0) {
 					errno = 0;
 					returnStatus = strtol(buffer, NULL, 10);
-					if(errno == ERANGE) {
+					if(errno == ERANGE) {	// Il server controlla se il numero contenuto nella stringa non generi overflow.
 						fprintf(stderr, "Error: integer overflow.\n");
 						returnStatus = 0;
 					} else {
-						if (returnStatus == 0)
+						if (returnStatus == 0)	// Viene anche effettuato il controllo per verificare che numero > 0.
 							fprintf(stderr, "Error: input equals zero.\n");
 						else {
-							repeatMessage = returnStatus;
+							repeatMessage = returnStatus;	// Superati tutti i controlli, il server salva il numero di messaggi da ricevere.
 							fprintf(stdout, "Number from client: %ld.\n", repeatMessage);
 						}
 					}
 				}
 
 				if(returnStatus != 0) {
-					while(repeatMessage > 0) {
+					while(repeatMessage > 0) {	// Il server riceve e rispedisce indietro il numero di messaggi prestabiliti.
 						memset(&buffer, '\0', sizeof(buffer));
 						fprintf(stdout, "\nWaiting for client message...\n");
 						returnStatus = read(simpleChildSocket, buffer, sizeof(buffer));
 						if(returnStatus > 0) {
-							if(buffer[strlen(buffer)] != '\0' || strlen(buffer) == 0) {
+							if(buffer[strlen(buffer)] != '\0' || strlen(buffer) == 0) {		// Il server controlla se il messaggio ricevuto ha il terminatore '\0' e non è nullo.
 								write(simpleChildSocket, "Error: invalid message.", strlen("Error: invalid message."));
 								fprintf(stderr, "\nError: invalid message.\nSent error message.\n\n");
 							} else {
@@ -127,8 +127,8 @@ int main(int argc, char *argv[]) {
 							fprintf(stderr, "\nError: connection failed. (%ld)\n", returnStatus);
 							break;
 						}
-					}
-					memset(&buffer, '\0', sizeof(buffer));
+					}	// Il server ripulisce il buffer.
+					memset(&buffer, '\0', sizeof(buffer));	// Perché altrimenti alcuni caratteri residui genererebbero errori durante l'analisi del numero dei messaggi.
 				} else
 					fprintf(stderr, "\nError: connection failed. (%ld)\n", returnStatus);
 			}

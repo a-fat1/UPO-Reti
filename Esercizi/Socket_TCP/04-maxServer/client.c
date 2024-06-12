@@ -52,20 +52,20 @@ int main(int argc, char *argv[]) {
 
 		do {
 			fprintf(stdout, "\nClient - Type an integer number: ");
-			if(fgets(buffer, sizeof(buffer), stdin) != NULL) {
-				if(buffer[strlen(buffer) - 1] != '\n') {
-					while ((returnStatus = getchar()) != '\n' && returnStatus != EOF);
+			if(fgets(buffer, sizeof(buffer), stdin) != NULL) {		// La funzione fgets() legge fino a sizeof(buffer) - 1 caratteri, o fino a '\n' o EOF.
+				if(buffer[strlen(buffer) - 1] != '\n') {	// Se l'ultimo carattere non è '\n' vuol dire che sono stati inseriti troppi caratteri.
+					while((returnStatus = getchar()) != '\n' && returnStatus != EOF);
 					fprintf(stderr, "Client - Error: input too long.\n");
 				} else {
-					buffer[strlen(buffer) - 1] = '\0';
+					buffer[strlen(buffer) - 1] = '\0';	// Sostituisce '\n' con '\0'.
 
-					if(buffer[0] == '-')
+					if(buffer[0] == '-')	// Se il numero è negativo, i controlli partono dal secondo carattere.
 						returnStatus = 1;
 					else
 						returnStatus = 0;
 
 					if(strcmp(buffer, "bye") != 0) {
-						while(buffer[returnStatus] != '\0') {
+						while(buffer[returnStatus] != '\0') {	// Controlla che tutti i caratteri siano dei numeri interi.
 							if(!isdigit(buffer[returnStatus])) {
 								returnStatus = 0;
 								break;
@@ -80,9 +80,9 @@ int main(int argc, char *argv[]) {
 							errno = 0;
     						returnStatus = strtol(buffer, NULL, 10);
 							if(errno == ERANGE) {
-								if(returnStatus == LONG_MAX)
+								if(returnStatus == LONG_MAX)	// Il client controlla se il numero contenuto nella stringa non generi overflow.
 									fprintf(stderr, "Client - Error: integer overflow.\n");
-								else if (returnStatus == LONG_MIN)
+								else if (returnStatus == LONG_MIN)	// Lo stesso discorso si applica per l'underflow.
 									fprintf(stderr, "Client - Error: integer underflow.\n");
 								returnStatus = -1;
 							} else
@@ -92,16 +92,16 @@ int main(int argc, char *argv[]) {
 						returnStatus = 1;
 
 					if(returnStatus == 1) {
-						write(simpleSocket, buffer, strlen(buffer));
+						write(simpleSocket, buffer, strlen(buffer));	// Il client invia il numero al server, oppure invia la parola 'bye'.
 						memset(buffer, '\0', sizeof(buffer));
 
-						returnStatus = read(simpleSocket, buffer, sizeof(buffer));
+						returnStatus = read(simpleSocket, buffer, sizeof(buffer));	// Il client riceve la risposta dal server.
 						if(returnStatus > 0) {
-							if(strcmp(buffer, "ack") == 0) {
+							if(strcmp(buffer, "ack") == 0) {	// La parola 'ack' viene ricevuta dopo 'bye', e successivamente la connessione viene terminata.
 								fprintf(stdout, "Client - Ack received, goodbye.\n");
 								returnStatus = 0;
 							} else
-								fprintf(stdout, "Server - %s\n", buffer);
+								fprintf(stdout, "Server - %s\n", buffer);	// Altrimenti il client stampa a schermo il numero massimo che il server ha memorizzato.
 						} else {
 							fprintf(stderr, "Client - Error receiving data from server.\n");
 							returnStatus = 0;

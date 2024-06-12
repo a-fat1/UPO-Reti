@@ -51,16 +51,16 @@ int main(int argc, char *argv[]) {
 
 		do {
 			fprintf(stdout, "\nClient - Number of messages: ");
-			if(fgets(buffer, sizeof(buffer), stdin) != NULL) {
-				if(buffer[strlen(buffer) - 1] != '\n') {
-					while ((returnStatus = getchar()) != '\n' && returnStatus != EOF);
+			if(fgets(buffer, sizeof(buffer), stdin) != NULL) {		// La funzione fgets() legge fino a sizeof(buffer) - 1 caratteri, o fino a '\n' o EOF.
+				if(buffer[strlen(buffer) - 1] != '\n') {	// Se l'ultimo carattere non è '\n' vuol dire che sono stati inseriti troppi caratteri.
+					while((returnStatus = getchar()) != '\n' && returnStatus != EOF);
 					fprintf(stderr, "Client - Error: input too long.\n");
 					returnStatus = 0;
 				} else {
-					buffer[strlen(buffer) - 1] = '\0';
+					buffer[strlen(buffer) - 1] = '\0';	// Sostituisce '\n' con '\0'.
 					returnStatus = 0;
 
-					while(buffer[returnStatus] != '\0') {
+					while(buffer[returnStatus] != '\0') {	// Controlla che tutti i caratteri siano dei numeri interi.
 						if(!isdigit(buffer[returnStatus])) {
 							returnStatus = 0;
 							break;
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 					else {
 						errno = 0;
 						returnStatus = strtol(buffer, NULL, 10);
-						if(errno == ERANGE) {
+						if(errno == ERANGE) {	// Controllo per verificare se il numero sia maggiore di zero e che non vada in overflow.
 							fprintf(stderr, "Client - Error: integer overflow.\n");
 							returnStatus = 0;
 						} else {
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 			}
 		} while(returnStatus == 0);
 
-		while(varInt > 0) {
+		while(varInt > 0) {		// Viene utilizzato il numero precedente in input per inviare n messaggi.
 			fprintf(stdout, "\nClient - ");
 			if(fgets(buffer, sizeof(buffer), stdin) != NULL) {
 				if(buffer[strlen(buffer) - 1] != '\n') {
@@ -100,15 +100,15 @@ int main(int argc, char *argv[]) {
 					fprintf(stderr, "Client - Error: invalid message.\n");
 				} else {
 					buffer[strlen(buffer) - 1] = '\0';
-					if(strlen(buffer) != 0) {
+					if(strlen(buffer) != 0) {	// Controlla che il messaggio non sia vuoto, perché se si preme solo invio '\n' viene sostituito con '\0'.
 						write(simpleSocket, buffer, strlen(buffer));
 
 						memset(&buffer, '\0', sizeof(buffer));
 						returnStatus = read(simpleSocket, buffer, sizeof(buffer));
 
 						if(returnStatus > 0) {
-							fprintf(stdout, "Server - %s\n", buffer);
-							varInt--;
+							fprintf(stdout, "Server - %s\n", buffer);	// Stampa il messaggio ricevuto dal server.
+							varInt--;	// Decrementa il numero di messaggi da inviare.
 						} else {
 							fprintf(stderr, "Error: connection failed. (%ld)\n", returnStatus);
 							break;
@@ -120,11 +120,11 @@ int main(int argc, char *argv[]) {
 				fprintf(stderr, "Client - Error: failed reading input.\n");
 		}
 
-		write(simpleSocket, "bye", strlen("bye"));
+		write(simpleSocket, "bye", strlen("bye"));	// Il client invia 'bye' al server.
 		memset(&buffer, '\0', sizeof(buffer));
-		returnStatus = read(simpleSocket, buffer, sizeof(buffer));
+		returnStatus = read(simpleSocket, buffer, sizeof(buffer));	// Si mette in attesa di 'ack' dal server.
 		
-		if(returnStatus > 0 && strcmp(buffer, "ack") == 0)
+		if(returnStatus > 0 && strcmp(buffer, "ack") == 0)	// In ogni caso la connessione viene chiusa, anche se 'ack' non è stato ricevuto.
 			fprintf(stdout, "\nAck received. Connection with server closed.\n");
 	} else
 		fprintf(stderr, "Error: connection failed. (%ld)\n", returnStatus);
